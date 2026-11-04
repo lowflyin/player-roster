@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { DEFAULT_QUARTER_MINUTES, QUARTERS_PER_GAME, type Position } from '../domain/netball';
-import { assignPosition, removePlayerFromLineup, type QuarterLineup } from '../domain/lineup';
+import { DEFAULT_QUARTER_MINUTES, type Position } from '../domain/netball';
+import { assignPosition, type QuarterLineup } from '../domain/lineup';
+import { generateRotation, homePositions } from '../domain/rotation';
 
 export interface Player {
   id: string;
@@ -12,12 +13,16 @@ export interface Player {
 export interface TeamSettings {
   id: 'team';
   teamName: string;
+  /** The match shown on the Roster tab. */
+  currentMatchId?: string;
   quarterMinutes: number;
 }
 
 export interface Match {
   id: string;
   opponent: string;
+  /** Court number or name, e.g. "3". */
+  court?: string;
   /** Local calendar date, YYYY-MM-DD. */
   date: string;
   quarterMinutes: number;
@@ -64,8 +69,18 @@ export async function addPlayer(name: string): Promise<Player> {
   return player;
 }
 
+/** Deletes a player and takes them out of today's and future matches; past matches are kept as played. */
 export async function removePlayer(id: string): Promise<void> {
-  await db.players.delete(id);
+  const today = new Date().toLocaleDateString('en-CA');
+  await db.transaction('rw', db.players, db.matches, async () => {
+    await db.players.delete(id);
+    const upcoming = await db.matches.where('date').aboveOrEqual(today).toArray();
+    for (const match of upcoming) {
+      if (!match.playerIds.includes(id)) continue;
+      const playerIds = match.playerIds.filter((p) => p !== id);
+      await db.matches.update(match.id, { playerIds, quarters: rotate(playerIds, match.quarters) });
+    }
+  });
 }
 
 export async function getSettings(): Promise<TeamSettings> {
@@ -77,18 +92,31 @@ export async function saveSettings(changes: Partial<Omit<TeamSettings, 'id'>>): 
   await db.settings.put({ ...current, ...changes });
 }
 
+/** A fresh fair rotation for `playerIds`, keeping each player's current main position. */
+function rotate(playerIds: string[], quarters: QuarterLineup[]): QuarterLineup[] {
+  return generateRotation(playerIds, homePositions(quarters, playerIds));
+}
+
 export async function createMatch(
-  details: Pick<Match, 'opponent' | 'date' | 'quarterMinutes' | 'playerIds'>,
+  details: Pick<Match, 'opponent' | 'court' | 'date' | 'quarterMinutes' | 'playerIds'>,
 ): Promise<Match> {
   const match: Match = {
     id: crypto.randomUUID(),
     ...details,
     opponent: details.opponent.trim(),
-    quarters: Array.from({ length: QUARTERS_PER_GAME }, () => ({})),
+    court: details.court?.trim(),
+    quarters: generateRotation(details.playerIds),
     createdAt: Date.now(),
   };
   await db.matches.add(match);
   return match;
+}
+
+export async function updateMatch(
+  matchId: string,
+  changes: Partial<Pick<Match, 'opponent' | 'court'>>,
+): Promise<void> {
+  await db.matches.update(matchId, changes);
 }
 
 export async function deleteMatch(id: string): Promise<void> {
@@ -111,7 +139,19 @@ export async function setMatchPosition(
   });
 }
 
-/** Adds or removes a player from the match squad; removed players leave the court. */
+/** Rebuilds a fair rotation, keeping each player's main position. Replaces manual changes. */
+export async function reallocateMatch(matchId: string): Promise<void> {
+  await db.transaction('rw', db.matches, async () => {
+    const match = await db.matches.get(matchId);
+    if (!match) return;
+    await db.matches.update(matchId, { quarters: rotate(match.playerIds, match.quarters) });
+  });
+}
+
+/**
+ * Adds or removes a player from the match squad and rebuilds the rotation so
+ * court time stays fair. Added players join as substitutes.
+ */
 export async function setMatchPlayerSelected(
   matchId: string,
   playerId: string,
@@ -120,14 +160,10 @@ export async function setMatchPlayerSelected(
   await db.transaction('rw', db.matches, async () => {
     const match = await db.matches.get(matchId);
     if (!match) return;
-    if (selected) {
-      if (match.playerIds.includes(playerId)) return;
-      await db.matches.update(matchId, { playerIds: [...match.playerIds, playerId] });
-    } else {
-      await db.matches.update(matchId, {
-        playerIds: match.playerIds.filter((id) => id !== playerId),
-        quarters: match.quarters.map((lineup) => removePlayerFromLineup(lineup, playerId)),
-      });
-    }
+    if (selected === match.playerIds.includes(playerId)) return;
+    const playerIds = selected
+      ? [...match.playerIds, playerId]
+      : match.playerIds.filter((id) => id !== playerId);
+    await db.matches.update(matchId, { playerIds, quarters: rotate(playerIds, match.quarters) });
   });
 }

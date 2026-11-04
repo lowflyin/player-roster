@@ -14,6 +14,7 @@ export function MatchForm({ onCancel, onCreated }: Props) {
   const settings = useLiveQuery(() => getSettings(), []);
 
   const [opponent, setOpponent] = useState('');
+  const [court, setCourt] = useState('');
   const [date, setDate] = useState(todayIsoDate);
   const [quarterMinutes, setQuarterMinutes] = useState<number | null>(null);
   // Players the coach has left out; everyone else is in the squad.
@@ -35,6 +36,7 @@ export function MatchForm({ onCancel, onCreated }: Props) {
     if (!players || minutes === undefined) return;
     const match = await createMatch({
       opponent,
+      court,
       date,
       quarterMinutes: minutes,
       playerIds: players.filter((p) => !excluded.has(p.id)).map((p) => p.id),
@@ -54,6 +56,18 @@ export function MatchForm({ onCancel, onCreated }: Props) {
             value={opponent}
             onChange={(e) => setOpponent(e.target.value)}
             placeholder="e.g. Northside Comets"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="match-court">Court</label>
+          <input
+            id="match-court"
+            value={court}
+            onChange={(e) => setCourt(e.target.value)}
+            placeholder="e.g. 3"
+            inputMode="numeric"
             autoComplete="off"
           />
         </div>

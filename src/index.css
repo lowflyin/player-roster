@@ -12,8 +12,8 @@
   /* Position zones */
   --zone-attack: #d6453d;
   --zone-attack-text: #ffffff;
-  --zone-centre: #f2b705;
-  --zone-centre-text: #1d1b20;
+  --zone-centre: #2e9d5b;
+  --zone-centre-text: #ffffff;
   --zone-defence: #2f6fd1;
   --zone-defence-text: #ffffff;
   --danger: #b3261e;
@@ -41,7 +41,8 @@
     --muted: #b0a7c0;
     --border: #3a3542;
     --zone-attack: #e2635b;
-    --zone-centre: #f5c33b;
+    --zone-centre: #4cc27d;
+    --zone-centre-text: #0e1a12;
     --zone-defence: #5b8fe6;
     --zone-defence-text: #10131a;
     --zone-attack-text: #1a0f0e;
@@ -503,4 +504,78 @@ fieldset.squad-picker {
 .sheet .form-actions button[aria-pressed='true'] {
   border-color: var(--text);
   border-width: 2px;
+}
+
+/* Court and opponent bar at the top of a match roster */
+.match-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 12px;
+  margin-bottom: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--brand);
+  border-radius: var(--radius);
+}
+
+.match-bar.editing {
+  display: block;
+}
+
+.match-bar-fields {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 8px;
+}
+
+.match-bar-fields .field {
+  margin-bottom: 0;
+}
+
+.match-bar-court,
+.match-bar-opponent {
+  display: grid;
+}
+
+.match-bar-court {
+  min-width: 3.5rem;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+
+.match-bar-opponent {
+  flex: 1;
+  min-width: 0;
+}
+
+.match-bar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.match-bar-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-bar-court .match-bar-value {
+  font-size: 1.5rem;
+}
+
+.match-bar-date {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.squad-picker .hint {
+  margin: 4px 0 8px;
 }

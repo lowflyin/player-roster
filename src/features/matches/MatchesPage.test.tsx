@@ -4,7 +4,7 @@ import { addPlayer } from '../../db/db';
 import { MatchesPage } from './MatchesPage';
 
 describe('MatchesPage', () => {
-  it('creates a match and assigns positions per quarter', async () => {
+  it('creates a match with positions allocated and lets the coach swap them', async () => {
     await addPlayer('Ruby');
     await addPlayer('Mia');
     const user = userEvent.setup();
@@ -12,31 +12,30 @@ describe('MatchesPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'New match' }));
     await user.type(screen.getByLabelText('Opponent'), 'Comets');
+    await user.type(screen.getByLabelText('Court'), '3');
     expect(await screen.findByLabelText('Mia')).toBeChecked();
     await user.click(screen.getByRole('button', { name: 'Create match' }));
 
-    expect(await screen.findByRole('heading', { name: 'vs Comets' })).toBeInTheDocument();
+    const bar = await screen.findByRole('region', { name: 'Match' });
+    expect(bar).toHaveTextContent('Court3');
+    expect(bar).toHaveTextContent('Comets');
 
-    // Ruby to Goal Shooter in Q1.
-    await user.click(screen.getByRole('button', { name: 'Ruby, quarter 1: Bench' }));
-    let sheet = screen.getByRole('dialog');
-    await user.click(within(sheet).getByRole('button', { name: 'Goal Shooter' }));
-    expect(
-      await screen.findByRole('button', { name: 'Ruby, quarter 1: Goal Shooter' }),
-    ).toHaveTextContent('GS');
+    // Allocated in squad order (alphabetical): Mia GS, Ruby GA, all four quarters.
+    expect(screen.getByRole('button', { name: 'Mia, quarter 4: Goal Shooter' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ruby, quarter 1: Goal Attack' })).toBeVisible();
 
-    // Mia to Centre, then swap Mia into GS: Ruby takes Centre.
-    await user.click(screen.getByRole('button', { name: 'Mia, quarter 1: Bench' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Centre' }));
-    await user.click(await screen.findByRole('button', { name: 'Mia, quarter 1: Centre' }));
-    sheet = screen.getByRole('dialog');
+    // Manual override: Ruby to GS in Q1 swaps with Mia.
+    await user.click(screen.getByRole('button', { name: 'Ruby, quarter 1: Goal Attack' }));
+    const sheet = screen.getByRole('dialog');
     expect(within(sheet).getByRole('button', { name: 'Goal Shooter' })).toHaveTextContent(
-      'Swap Ruby',
+      'Swap Mia',
     );
     await user.click(within(sheet).getByRole('button', { name: 'Goal Shooter' }));
 
-    expect(await screen.findByRole('button', { name: 'Ruby, quarter 1: Centre' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Mia, quarter 1: Goal Shooter' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Ruby, quarter 2: Bench' })).toBeVisible();
+    expect(
+      await screen.findByRole('button', { name: 'Ruby, quarter 1: Goal Shooter' }),
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Mia, quarter 1: Goal Attack' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ruby, quarter 2: Goal Attack' })).toBeVisible();
   });
 });

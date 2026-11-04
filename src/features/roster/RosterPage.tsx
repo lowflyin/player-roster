@@ -1,22 +1,72 @@
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../db/db';
+import { db, getSettings, saveSettings, type Match } from '../../db/db';
+import { formatMatchDate, todayIsoDate } from '../matches/format';
+import { MatchForm } from '../matches/MatchForm';
+import { MatchRoster } from '../matches/MatchRoster';
 
 export function RosterPage() {
-  const players = useLiveQuery(() => db.players.orderBy('name').toArray(), []);
+  const matches = useLiveQuery(() => db.matches.orderBy('date').toArray(), []);
+  const settings = useLiveQuery(() => getSettings(), []);
+  const [creating, setCreating] = useState(false);
+
+  if (creating) {
+    return (
+      <MatchForm
+        onCancel={() => setCreating(false)}
+        onCreated={async (id) => {
+          await saveSettings({ currentMatchId: id });
+          setCreating(false);
+        }}
+      />
+    );
+  }
+
+  if (!matches || !settings) return null;
+
+  const current = matches.find((m) => m.id === settings.currentMatchId) ?? defaultMatch(matches);
 
   return (
     <section>
-      <h2>Roster</h2>
+      <div className="section-header">
+        <h2>Roster</h2>
+        <button onClick={() => setCreating(true)}>New match</button>
+      </div>
 
-      {players === undefined ? null : players.length === 0 ? (
-        <p className="empty">No players yet. Add your squad on the Team tab.</p>
+      {!current ? (
+        <p className="empty">
+          No matches yet. Create one and positions are allocated for all four quarters.
+        </p>
       ) : (
-        <ul className="player-list" aria-label="Players">
-          {players.map((player) => (
-            <li key={player.id}>{player.name}</li>
-          ))}
-        </ul>
+        <>
+          {matches.length > 1 && (
+            <div className="field">
+              <label htmlFor="roster-match" className="visually-hidden">
+                Match
+              </label>
+              <select
+                id="roster-match"
+                value={current.id}
+                onChange={(e) => saveSettings({ currentMatchId: e.target.value })}
+              >
+                {matches.map((match) => (
+                  <option key={match.id} value={match.id}>
+                    {formatMatchDate(match.date)}
+                    {match.opponent ? ` · vs ${match.opponent}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <MatchRoster matchId={current.id} />
+        </>
       )}
     </section>
   );
+}
+
+/** The next match from today, or the most recent one if they're all in the past. */
+function defaultMatch(matchesByDate: Match[]): Match | undefined {
+  const today = todayIsoDate();
+  return matchesByDate.find((m) => m.date >= today) ?? matchesByDate.at(-1);
 }

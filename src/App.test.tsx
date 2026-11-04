@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 
 describe('App', () => {
-  it('adds a player on the Team tab and lists them on the Roster tab', async () => {
+  it('adds a player on the Team tab and puts them in a match roster', async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    expect(await screen.findByText(/No players yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No matches yet/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Team' }));
     await user.type(screen.getByLabelText('Player name'), 'Ruby');
@@ -15,9 +15,13 @@ describe('App', () => {
     expect(await screen.findByText('Ruby')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Roster' }));
-    const list = await screen.findByRole('list', { name: 'Players' });
-    expect(within(list).getByText('Ruby')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Remove Ruby' })).not.toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'New match' }));
+    await screen.findByLabelText('Ruby');
+    await user.click(screen.getByRole('button', { name: 'Create match' }));
+
+    const bar = await screen.findByRole('region', { name: 'Match' });
+    expect(within(bar).getByText('Opponent not set')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ruby, quarter 1: Goal Shooter' })).toBeVisible();
   });
 
   it('saves the quarter length setting', async () => {
