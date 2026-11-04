@@ -180,6 +180,7 @@ select {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 8px 8px 16px;
+  min-height: 44px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);

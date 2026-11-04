@@ -140,7 +140,7 @@ export function MatchDetail({ matchId, onBack }: Props) {
       {editingSquad && (
         <fieldset className="field squad-picker">
           <legend>Squad</legend>
-          {players.length === 0 && <p className="hint">Add players on the Roster tab first.</p>}
+          {players.length === 0 && <p className="hint">Add players on the Team tab first.</p>}
           {players.map((player) => (
             <label key={player.id} className="check-row">
               <input

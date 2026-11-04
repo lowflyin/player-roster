@@ -1,51 +1,19 @@
-import { useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { addPlayer, db, removePlayer } from '../../db/db';
+import { db } from '../../db/db';
 
 export function RosterPage() {
   const players = useLiveQuery(() => db.players.orderBy('name').toArray(), []);
-  const [name, setName] = useState('');
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!name.trim()) return;
-    await addPlayer(name);
-    setName('');
-  }
 
   return (
     <section>
-      <h2>Players</h2>
-
-      <form className="add-player" onSubmit={handleSubmit}>
-        <label htmlFor="player-name" className="visually-hidden">
-          Player name
-        </label>
-        <input
-          id="player-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Player name"
-          autoComplete="off"
-        />
-        <button type="submit">Add</button>
-      </form>
+      <h2>Roster</h2>
 
       {players === undefined ? null : players.length === 0 ? (
-        <p className="empty">No players yet. Add your squad above.</p>
+        <p className="empty">No players yet. Add your squad on the Team tab.</p>
       ) : (
-        <ul className="player-list">
+        <ul className="player-list" aria-label="Players">
           {players.map((player) => (
-            <li key={player.id}>
-              <span>{player.name}</span>
-              <button
-                className="secondary"
-                aria-label={`Remove ${player.name}`}
-                onClick={() => removePlayer(player.id)}
-              >
-                Remove
-              </button>
-            </li>
+            <li key={player.id}>{player.name}</li>
           ))}
         </ul>
       )}

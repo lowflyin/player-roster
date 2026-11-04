@@ -90,7 +90,7 @@ export function MatchForm({ onCancel, onCreated }: Props) {
           <legend>Squad</legend>
           {players?.length === 0 && (
             <p className="hint">
-              Add players on the Roster tab first, or add them to the match later.
+              Add players on the Team tab first, or add them to the match later.
             </p>
           )}
           {players?.map((player) => (
