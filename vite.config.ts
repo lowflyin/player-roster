@@ -10,6 +10,11 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
+  resolve: {
+    // Vite's native resolver can't follow OneDrive's cloud-file placeholders,
+    // so resolve packages by path instead of by real path.
+    preserveSymlinks: true,
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
