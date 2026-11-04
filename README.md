@@ -50,7 +50,8 @@ src/
   App.tsx               App shell: header, bottom tab navigation
   components/           Shared UI (e.g. update-available prompt)
   db/db.ts              Dexie database, schema and data helpers
-  domain/netball.ts     Netball rules: positions, quarters, game time
+  domain/netball.ts     Netball rules: positions, zones, quarters, game time
+  domain/lineup.ts      Per-quarter lineup rules (assign, swap, bench)
   features/<feature>/   One folder per screen/feature
   test/setup.ts         Test environment setup
 public/                 Static assets and PWA icons
@@ -88,7 +89,7 @@ mid-game.
 ## Roadmap ideas
 
 - Player details and preferred positions
-- Game day: record who played which position each quarter
+- ~~Game day: record who played which position each quarter~~ (Matches tab)
 - Game-time tracking per player (respecting quarter length)
 - Suggested line-ups for fair rotation
 - Share a line-up as an image (Web Share API → WhatsApp) and print-friendly view

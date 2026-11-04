@@ -22,3 +22,15 @@ export const DEFAULT_QUARTER_MINUTES = 10;
 export function totalGameMinutes(quarterMinutes: number): number {
   return quarterMinutes * QUARTERS_PER_GAME;
 }
+
+export type Zone = 'attack' | 'centre' | 'defence';
+
+export const POSITION_ZONES: Record<Position, Zone> = {
+  GS: 'attack',
+  GA: 'attack',
+  WA: 'attack',
+  C: 'centre',
+  WD: 'defence',
+  GD: 'defence',
+  GK: 'defence',
+};
