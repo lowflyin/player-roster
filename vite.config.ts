@@ -22,7 +22,7 @@ export default defineConfig({
         name: 'Netball Player Roster',
         short_name: 'Roster',
         description: 'Manage your junior netball roster and track player positions.',
-        theme_color: '#5b2a86',
+        theme_color: '#ffcc00',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',

@@ -1,6 +1,6 @@
 :root {
-  --brand: #5b2a86;
-  --brand-contrast: #ffffff;
+  --brand: #ffcc00;
+  --brand-contrast: #1d1b20;
   --accent: #ffd23f;
   --bg: #f7f5fa;
   --surface: #ffffff;
@@ -33,7 +33,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --brand: #b98be0;
+    --brand: #ffcc00;
     --brand-contrast: #1d1b20;
     --bg: #141218;
     --surface: #211f26;
@@ -91,7 +91,7 @@ button {
 
 button.secondary {
   background: transparent;
-  color: var(--brand);
+  color: var(--text);
   border: 1px solid var(--border);
 }
 
@@ -500,6 +500,6 @@ fieldset.squad-picker {
 }
 
 .sheet .form-actions button[aria-pressed='true'] {
-  border-color: var(--brand);
+  border-color: var(--text);
   border-width: 2px;
 }
