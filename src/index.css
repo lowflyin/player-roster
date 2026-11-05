@@ -594,3 +594,8 @@ button.danger-solid {
   margin: 0 0 4px;
   color: var(--muted);
 }
+
+/* A section header with no visible title: keep its buttons on the right. */
+.section-header.actions-only {
+  justify-content: flex-end;
+}

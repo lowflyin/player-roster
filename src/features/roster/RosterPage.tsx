@@ -28,8 +28,8 @@ export function RosterPage() {
 
   return (
     <section>
-      <div className="section-header">
-        <h2>Roster</h2>
+      <div className="section-header actions-only">
+        <h2 className="visually-hidden">Roster</h2>
         <button onClick={() => setCreating(true)}>New match</button>
       </div>
 
