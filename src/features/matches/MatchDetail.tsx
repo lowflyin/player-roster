@@ -8,7 +8,7 @@ interface Props {
 export function MatchDetail({ matchId, onBack }: Props) {
   return (
     <section>
-      <button className="secondary back" onClick={onBack}>
+      <button className="secondary back no-print" onClick={onBack}>
         ‹ Games
       </button>
 

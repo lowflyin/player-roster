@@ -32,7 +32,9 @@ export function RosterPage() {
       <div className={`section-header${teamName ? '' : ' actions-only'}`}>
         <h2 className="visually-hidden">Roster</h2>
         {teamName && <p className="team-name">{teamName}</p>}
-        <button onClick={() => setCreating(true)}>New Game</button>
+        <button className="no-print" onClick={() => setCreating(true)}>
+          New Game
+        </button>
       </div>
 
       {!current ? (
@@ -42,7 +44,7 @@ export function RosterPage() {
       ) : (
         <>
           {matches.length > 1 && (
-            <div className="field">
+            <div className="field no-print">
               <label htmlFor="roster-match" className="visually-hidden">
                 Game
               </label>

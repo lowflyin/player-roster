@@ -2,6 +2,13 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { addPlayer } from '../../db/db';
 import { RosterPage } from './RosterPage';
+import { shareRosterImage } from '../matches/shareRoster';
+
+// Drawing the picture needs a real canvas, which the test browser doesn't have.
+vi.mock('../matches/shareRoster', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../matches/shareRoster')>()),
+  shareRosterImage: vi.fn(async () => 'shared'),
+}));
 
 const NAMES = ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby'];
 
@@ -135,5 +142,49 @@ describe('RosterPage', () => {
 
     expect(week1).toEqual([...NAMES].sort());
     expect(week2).toEqual(week1);
+  });
+
+  it('shares the roster with the court and opponent', async () => {
+    for (const name of NAMES) await addPlayer(name);
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user);
+
+    await user.click(screen.getByRole('button', { name: 'Share' }));
+
+    await waitFor(() => expect(shareRosterImage).toHaveBeenCalled());
+    const [sheet, fileName] = vi.mocked(shareRosterImage).mock.calls.at(-1)!;
+    expect(sheet.court).toBe('4');
+    expect(sheet.opponent).toBe('Northside Comets');
+    expect(sheet.rows.map((row) => row.name)).toEqual([...NAMES].sort());
+    expect(fileName).toMatch(/^roster-\d{4}-\d{2}-\d{2}\.png$/);
+  });
+
+  it('opens the print screen for Print / PDF', async () => {
+    await addPlayer('Ruby');
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {});
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user);
+
+    await user.click(screen.getByRole('button', { name: 'Print / PDF' }));
+
+    expect(print).toHaveBeenCalled();
+    print.mockRestore();
+  });
+
+  it('opens WhatsApp with the roster typed out', async () => {
+    for (const name of NAMES) await addPlayer(name);
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user);
+
+    const link = screen.getByRole('link', { name: 'WhatsApp' });
+    const url = new URL(link.getAttribute('href')!);
+    expect(url.origin + url.pathname).toBe('https://wa.me/');
+    const message = url.searchParams.get('text')!;
+    expect(message).toContain('vs Northside Comets');
+    expect(message).toContain('Court 4');
+    expect(message.match(/^\*Q\d:\*/gm)).toHaveLength(4);
   });
 });

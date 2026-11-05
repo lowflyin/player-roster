@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   db,
   deleteMatch,
+  getSettings,
   reallocateMatch,
   setMatchPlayerSelected,
   setMatchPosition,
@@ -14,6 +15,13 @@ import { positionOf, quartersPlayed, unfilledPositions } from '../../domain/line
 import { formatMatchDate } from './format';
 import { PositionPicker } from './PositionPicker';
 import { ConfirmSheet } from '../../components/ConfirmSheet';
+import {
+  rosterMessage,
+  rosterSheet,
+  shareFileName,
+  shareRosterImage,
+  whatsAppUrl,
+} from './shareRoster';
 
 interface Selection {
   playerId: string;
@@ -30,8 +38,11 @@ interface Props {
 export function MatchRoster({ matchId, onDeleted }: Props) {
   const match = useLiveQuery(() => db.matches.get(matchId), [matchId]);
   const players = useLiveQuery(() => db.players.orderBy('name').toArray(), []);
+  const settings = useLiveQuery(() => getSettings(), []);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [confirmingReallocate, setConfirmingReallocate] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareMessage, setShareMessage] = useState('');
 
   if (!match || !players) return null;
 
@@ -41,6 +52,25 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
   // keeps their row from match to match as positions rotate.
   const squad = players.filter((p) => match.playerIds.includes(p.id));
   const selectedPlayer = selection ? byId.get(selection.playerId) : undefined;
+
+  async function handleShare() {
+    if (!match) return;
+    setSharing(true);
+    setShareMessage('');
+    try {
+      const sheet = rosterSheet(match, squad, settings?.teamName ?? '');
+      const result = await shareRosterImage(sheet, shareFileName(match));
+      if (result === 'downloaded') {
+        setShareMessage(
+          'Sharing isn’t available here, so the roster picture was downloaded instead.',
+        );
+      }
+    } catch {
+      setShareMessage('Sorry, the roster picture couldn’t be made. Try Print / PDF instead.');
+    } finally {
+      setSharing(false);
+    }
+  }
 
   async function handleReallocate() {
     setConfirmingReallocate(false);
@@ -121,9 +151,44 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
         </div>
       )}
 
-      <p className="hint">Tap a square to change a position. Blank squares are substitutes.</p>
+      <p className="hint no-print">
+        Tap a square to change a position. Blank squares are substitutes.
+      </p>
 
-      <div className="match-actions">
+      <div className="match-actions no-print">
+        <button onClick={handleShare} disabled={squad.length === 0 || sharing}>
+          {sharing ? 'Preparing…' : 'Share'}
+        </button>
+        {/* A plain link opens the WhatsApp app most reliably, including from the installed app. */}
+        {squad.length > 0 ? (
+          <a
+            className="button-link whatsapp"
+            href={whatsAppUrl(rosterMessage(rosterSheet(match, squad, settings?.teamName ?? '')))}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp
+          </a>
+        ) : (
+          <button className="whatsapp" disabled>
+            WhatsApp
+          </button>
+        )}
+        <button
+          className="print-button"
+          onClick={() => window.print()}
+          disabled={squad.length === 0}
+        >
+          Print / PDF
+        </button>
+      </div>
+      {shareMessage && (
+        <p className="hint no-print" role="status">
+          {shareMessage}
+        </p>
+      )}
+
+      <div className="match-actions no-print">
         <button
           className="secondary"
           onClick={() => setConfirmingReallocate(true)}
@@ -133,7 +198,7 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
         </button>
       </div>
 
-      <fieldset className="field squad-picker">
+      <fieldset className="field squad-picker no-print">
         <legend>Playing</legend>
         {players.length === 0 && <p className="hint">Add players on the Team tab first.</p>}
         {players.map((player) => (
@@ -262,7 +327,11 @@ function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }
         <span className="match-bar-value">{match.opponent || 'Opponent not set'}</span>
         <span className="match-bar-date">{formatMatchDate(match.date)}</span>
       </div>
-      <button className="secondary" onClick={startEditing} aria-label="Edit court and opponent">
+      <button
+        className="secondary no-print"
+        onClick={startEditing}
+        aria-label="Edit court and opponent"
+      >
         Edit
       </button>
     </div>
