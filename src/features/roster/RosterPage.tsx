@@ -25,12 +25,14 @@ export function RosterPage() {
   if (!matches || !settings) return null;
 
   const current = matches.find((m) => m.id === settings.currentMatchId) ?? defaultMatch(matches);
+  const teamName = settings.teamName.trim();
 
   return (
     <section>
-      <div className="section-header actions-only">
+      <div className={`section-header${teamName ? '' : ' actions-only'}`}>
         <h2 className="visually-hidden">Roster</h2>
-        <button onClick={() => setCreating(true)}>New game</button>
+        {teamName && <p className="team-name">{teamName}</p>}
+        <button onClick={() => setCreating(true)}>New Game</button>
       </div>
 
       {!current ? (

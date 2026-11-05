@@ -15,7 +15,7 @@ describe('App', () => {
     expect(await screen.findByText('Ruby')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Roster' }));
-    await user.click(await screen.findByRole('button', { name: 'New game' }));
+    await user.click(await screen.findByRole('button', { name: 'New Game' }));
     await screen.findByLabelText('Ruby');
     await user.click(screen.getByRole('button', { name: 'Create game' }));
 
@@ -29,9 +29,20 @@ describe('App', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
-    await user.type(screen.getByLabelText('Team name'), 'Diamonds');
+    await user.type(screen.getByLabelText('Team Name'), 'Diamonds');
 
     expect(await screen.findByDisplayValue('Diamonds')).toBeInTheDocument();
     expect(screen.queryByLabelText('Quarter length')).not.toBeInTheDocument();
+  });
+
+  it('shows the team name at the top of the Roster tab', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }));
+    await user.type(screen.getByLabelText('Team Name'), 'Diamonds');
+    await user.click(screen.getByRole('button', { name: 'Roster' }));
+
+    expect(await screen.findByText('Diamonds')).toBeInTheDocument();
   });
 });

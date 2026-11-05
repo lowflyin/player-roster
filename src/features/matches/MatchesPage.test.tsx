@@ -10,7 +10,7 @@ describe('MatchesPage', () => {
     const user = userEvent.setup();
     render(<MatchesPage />);
 
-    await user.click(screen.getByRole('button', { name: 'New game' }));
+    await user.click(screen.getByRole('button', { name: 'New Game' }));
     await user.type(screen.getByLabelText('Opponent'), 'Comets');
     await user.type(screen.getByLabelText('Court'), '3');
     expect(await screen.findByLabelText('Mia')).toBeChecked();

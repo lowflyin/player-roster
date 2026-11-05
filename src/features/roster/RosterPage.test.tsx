@@ -6,7 +6,7 @@ import { RosterPage } from './RosterPage';
 const NAMES = ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby'];
 
 async function createMatch(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(await screen.findByRole('button', { name: 'New game' }));
+  await user.click(await screen.findByRole('button', { name: 'New Game' }));
   await user.type(screen.getByLabelText('Opponent'), 'Northside Comets');
   await user.type(screen.getByLabelText('Court'), '4');
   await screen.findByLabelText('Ruby');

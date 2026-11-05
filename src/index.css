@@ -599,3 +599,17 @@ button.danger-solid {
 .section-header.actions-only {
   justify-content: flex-end;
 }
+
+/* Team name shown at the top of the Roster tab */
+.team-name {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

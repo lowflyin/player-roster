@@ -25,7 +25,7 @@ export function MatchesPage() {
     <section>
       <div className="section-header">
         <h2>Games</h2>
-        <button onClick={() => setView({ kind: 'new' })}>New game</button>
+        <button onClick={() => setView({ kind: 'new' })}>New Game</button>
       </div>
 
       {matches === undefined ? null : matches.length === 0 ? (

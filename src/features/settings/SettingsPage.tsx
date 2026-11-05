@@ -12,7 +12,7 @@ export function SettingsPage() {
       <h2>Team settings</h2>
 
       <div className="field">
-        <label htmlFor="team-name">Team name</label>
+        <label htmlFor="team-name">Team Name</label>
         <input
           id="team-name"
           value={teamName ?? settings.teamName}
