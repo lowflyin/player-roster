@@ -1,5 +1,5 @@
 import type { Match, Player } from '../../db/db';
-import { rosterMessage, rosterSheet, shareFileName, shareText, whatsAppUrl } from './shareRoster';
+import { rosterSheet, shareFileName, shareText } from './shareRoster';
 
 const player = (id: string, name: string): Player => ({
   id,
@@ -43,26 +43,5 @@ describe('rosterSheet', () => {
     const sheet = rosterSheet(match, [], 'Snowgums');
     expect(shareText(sheet)).toMatch(/^Snowgums vs Northside Comets, Court 3, /);
     expect(shareFileName(match)).toBe('roster-2026-11-07.png');
-  });
-});
-
-describe('rosterMessage', () => {
-  it('lists who plays each position and who is off, quarter by quarter', () => {
-    const sheet = rosterSheet(match, [player('a', 'Ava'), player('b', 'Bea')], 'Snowgums');
-    const lines = rosterMessage(sheet).split('\n');
-
-    expect(lines[0]).toBe('*Snowgums vs Northside Comets*');
-    expect(lines[1]).toMatch(/^Court 3 · /);
-    expect(lines).toContain(
-      '*Q1:* GS Ava, GA Bea, WA (open), C (open), WD (open), GD (open), GK (open)',
-    );
-    expect(lines).toContain('Subs: Bea'); // Q2: Bea is off
-    expect(lines.filter((line) => line.startsWith('*Q'))).toHaveLength(4);
-  });
-
-  it('opens WhatsApp with the message ready to send', () => {
-    expect(whatsAppUrl('Snowgums vs ZYX & co')).toBe(
-      'https://wa.me/?text=Snowgums%20vs%20ZYX%20%26%20co',
-    );
   });
 });

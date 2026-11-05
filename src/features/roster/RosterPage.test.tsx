@@ -172,19 +172,4 @@ describe('RosterPage', () => {
     expect(print).toHaveBeenCalled();
     print.mockRestore();
   });
-
-  it('opens WhatsApp with the roster typed out', async () => {
-    for (const name of NAMES) await addPlayer(name);
-    const user = userEvent.setup();
-    render(<RosterPage />);
-    await createMatch(user);
-
-    const link = screen.getByRole('link', { name: 'WhatsApp' });
-    const url = new URL(link.getAttribute('href')!);
-    expect(url.origin + url.pathname).toBe('https://wa.me/');
-    const message = url.searchParams.get('text')!;
-    expect(message).toContain('vs Northside Comets');
-    expect(message).toContain('Court 4');
-    expect(message.match(/^\*Q\d:\*/gm)).toHaveLength(4);
-  });
 });

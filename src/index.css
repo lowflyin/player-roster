@@ -678,37 +678,14 @@ button.danger-solid {
   }
 }
 
-/* A link that looks and sizes like the app's buttons. */
-.button-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--radius);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.match-actions .button-link {
-  flex: 1;
-}
-
-/* WhatsApp green, with dark text for contrast. */
-.whatsapp {
-  background: #25d366;
-  color: #0b2414;
-}
-
 /* Print / PDF: light grey with black text, in light and dark mode. */
 button.print-button {
   background: #e0e0e0;
   color: #000000;
 }
 
-/* Keep labels on one line when three buttons share a row on a phone. */
-.match-actions button,
-.match-actions .button-link {
+/* Keep labels on one line when buttons share a row on a phone. */
+.match-actions button {
   padding: 0 8px;
   font-size: 0.9375rem;
   white-space: nowrap;

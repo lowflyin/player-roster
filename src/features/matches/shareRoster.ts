@@ -41,30 +41,6 @@ export function shareFileName(match: Match): string {
   return `roster-${match.date}.png`;
 }
 
-/**
- * The roster as a WhatsApp text message: the game on the first lines, then
- * who plays each position (in court order) and who's off, quarter by quarter.
- */
-export function rosterMessage(sheet: RosterSheet): string {
-  const lines = [
-    `*${sheet.teamName ? `${sheet.teamName} ` : ''}vs ${sheet.opponent}*`,
-    `Court ${sheet.court} · ${sheet.date}`,
-  ];
-  for (let q = 0; q < sheet.quarters; q++) {
-    const at = (position: Position) => sheet.rows.find((row) => row.cells[q] === position)?.name;
-    const court = POSITIONS.map((position) => `${position} ${at(position) ?? '(open)'}`);
-    const subs = sheet.rows.filter((row) => !row.cells[q]).map((row) => row.name);
-    lines.push('', `*Q${q + 1}:* ${court.join(', ')}`);
-    if (subs.length) lines.push(`Subs: ${subs.join(', ')}`);
-  }
-  return lines.join('\n');
-}
-
-/** Opens WhatsApp (the app on a phone) with `text` ready to send to a chat of the user's choice. */
-export function whatsAppUrl(text: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(text)}`;
-}
-
 // The picture always uses the light colours, whatever the phone's theme, so it
 // reads the same for everyone it's sent to.
 const COLOURS = {

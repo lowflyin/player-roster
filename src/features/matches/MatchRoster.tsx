@@ -15,13 +15,7 @@ import { positionOf, quartersPlayed, unfilledPositions } from '../../domain/line
 import { formatMatchDate } from './format';
 import { PositionPicker } from './PositionPicker';
 import { ConfirmSheet } from '../../components/ConfirmSheet';
-import {
-  rosterMessage,
-  rosterSheet,
-  shareFileName,
-  shareRosterImage,
-  whatsAppUrl,
-} from './shareRoster';
+import { rosterSheet, shareFileName, shareRosterImage } from './shareRoster';
 
 interface Selection {
   playerId: string;
@@ -159,21 +153,6 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
         <button onClick={handleShare} disabled={squad.length === 0 || sharing}>
           {sharing ? 'Preparing…' : 'Share'}
         </button>
-        {/* A plain link opens the WhatsApp app most reliably, including from the installed app. */}
-        {squad.length > 0 ? (
-          <a
-            className="button-link whatsapp"
-            href={whatsAppUrl(rosterMessage(rosterSheet(match, squad, settings?.teamName ?? '')))}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            WhatsApp
-          </a>
-        ) : (
-          <button className="whatsapp" disabled>
-            WhatsApp
-          </button>
-        )}
         <button
           className="print-button"
           onClick={() => window.print()}
