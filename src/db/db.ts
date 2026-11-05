@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import { DEFAULT_QUARTER_MINUTES, type Position } from '../domain/netball';
 import { assignPosition, type QuarterLineup } from '../domain/lineup';
 import { generateRotation, homePositions } from '../domain/rotation';
+import { planFromHistory } from '../domain/history';
 
 export interface Player {
   id: string;
@@ -97,15 +98,25 @@ function rotate(playerIds: string[], quarters: QuarterLineup[]): QuarterLineup[]
   return generateRotation(playerIds, homePositions(quarters, playerIds));
 }
 
+/**
+ * Creates a match with positions allocated. Earlier games are taken into
+ * account so players move to positions they haven't played lately and
+ * substitute duty rotates from week to week.
+ */
 export async function createMatch(
   details: Pick<Match, 'opponent' | 'court' | 'date' | 'quarterMinutes' | 'playerIds'>,
 ): Promise<Match> {
+  const earlier = await db.matches.where('date').belowOrEqual(details.date).toArray();
+  earlier.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  const plan = planFromHistory(details.playerIds, earlier);
+
   const match: Match = {
     id: crypto.randomUUID(),
     ...details,
     opponent: details.opponent.trim(),
     court: details.court?.trim(),
-    quarters: generateRotation(details.playerIds),
+    playerIds: plan.order,
+    quarters: generateRotation(plan.order, plan.homes),
     createdAt: Date.now(),
   };
   await db.matches.add(match);
