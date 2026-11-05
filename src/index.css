@@ -713,3 +713,8 @@ button.print-button {
   font-size: 0.9375rem;
   white-space: nowrap;
 }
+
+/* Settings: the prompt shown while no team name is entered. */
+#team-name::placeholder {
+  font-style: italic;
+}

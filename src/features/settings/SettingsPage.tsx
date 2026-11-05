@@ -22,7 +22,7 @@ export function SettingsPage() {
             setTeamName(e.target.value);
             void saveSettings({ teamName: e.target.value });
           }}
-          placeholder="e.g. Under 11 Diamonds"
+          placeholder="Enter Team Name"
         />
       </div>
 
