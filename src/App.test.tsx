@@ -6,6 +6,8 @@ import { saveSettings } from './db/db';
 /** A brand-new install opens on the set-up wizard; these tests start past it. */
 async function skipSetup(user: ReturnType<typeof userEvent.setup>) {
   await user.click(await screen.findByRole('button', { name: 'Skip setup' }));
+  // Skipping saves first, then shows the tabs: wait for them.
+  await screen.findByRole('navigation', { name: 'Main' });
 }
 
 describe('App', () => {
