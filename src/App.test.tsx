@@ -3,10 +3,16 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import { saveSettings } from './db/db';
 
+/** A brand-new install opens on the set-up wizard; these tests start past it. */
+async function skipSetup(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: 'Skip setup' }));
+}
+
 describe('App', () => {
   it('adds a player on the Team tab and puts them in a match roster', async () => {
     const user = userEvent.setup();
     render(<App />);
+    await skipSetup(user);
 
     expect(await screen.findByText(/No games yet/)).toBeInTheDocument();
 
@@ -28,6 +34,7 @@ describe('App', () => {
   it('saves the team name setting, with no quarter length to set', async () => {
     const user = userEvent.setup();
     render(<App />);
+    await skipSetup(user);
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
     await user.type(screen.getByLabelText('Team Name'), 'Diamonds');
@@ -39,6 +46,7 @@ describe('App', () => {
   it('shows the team name at the top of the Roster tab', async () => {
     const user = userEvent.setup();
     render(<App />);
+    await skipSetup(user);
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
     await user.type(screen.getByLabelText('Team Name'), 'Diamonds');
@@ -48,7 +56,7 @@ describe('App', () => {
   });
 
   it('keeps the Roster team name the same as the Settings box, blank when empty', async () => {
-    await saveSettings({ teamName: 'Snowgums' });
+    await saveSettings({ teamName: 'Snowgums', onboardingDone: true });
     const user = userEvent.setup();
     render(<App />);
     expect(await screen.findByText('Snowgums')).toBeInTheDocument(); // Roster tab

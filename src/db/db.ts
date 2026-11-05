@@ -17,6 +17,8 @@ export interface TeamSettings {
   /** The match shown on the Roster tab. */
   currentMatchId?: string;
   quarterMinutes: number;
+  /** Set once the coach finishes or skips the first-run set-up wizard. */
+  onboardingDone?: boolean;
 }
 
 export interface Match {
@@ -84,6 +86,16 @@ export async function removePlayer(id: string): Promise<void> {
       await db.matches.update(match.id, { playerIds, quarters: await rotate(match, playerIds) });
     }
   });
+}
+
+/**
+ * True on a brand-new install: set-up hasn't been finished or skipped, and
+ * there are no players or games yet. Coaches already using the app never see set-up.
+ */
+export async function isFirstRun(): Promise<boolean> {
+  const settings = await getSettings();
+  if (settings.onboardingDone) return false;
+  return (await db.players.count()) === 0 && (await db.matches.count()) === 0;
 }
 
 export async function getSettings(): Promise<TeamSettings> {

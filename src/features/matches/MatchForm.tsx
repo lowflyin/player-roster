@@ -6,9 +6,18 @@ import { todayIsoDate } from './format';
 interface Props {
   onCancel: () => void;
   onCreated: (matchId: string) => void;
+  /** Heading above the form. */
+  title?: string;
+  /** Label for the button that leaves without creating a game. */
+  cancelLabel?: string;
 }
 
-export function MatchForm({ onCancel, onCreated }: Props) {
+export function MatchForm({
+  onCancel,
+  onCreated,
+  title = 'New game',
+  cancelLabel = 'Cancel',
+}: Props) {
   const players = useLiveQuery(() => db.players.orderBy('name').toArray(), []);
 
   const [opponent, setOpponent] = useState('');
@@ -40,7 +49,7 @@ export function MatchForm({ onCancel, onCreated }: Props) {
 
   return (
     <section>
-      <h2>New game</h2>
+      <h2>{title}</h2>
 
       <form onSubmit={handleSubmit}>
         <div className="field">
@@ -98,7 +107,7 @@ export function MatchForm({ onCancel, onCreated }: Props) {
 
         <div className="form-actions">
           <button type="button" className="secondary" onClick={onCancel}>
-            Cancel
+            {cancelLabel}
           </button>
           <button type="submit">Create game</button>
         </div>

@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { isFirstRun } from './db/db';
 import { RosterPage } from './features/roster/RosterPage';
 import { TeamPage } from './features/team/TeamPage';
 import { MatchesPage } from './features/matches/MatchesPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import { ReloadPrompt } from './components/ReloadPrompt';
 
 type Tab = 'roster' | 'team' | 'matches' | 'settings';
@@ -16,6 +19,24 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('roster');
+  const firstRun = useLiveQuery(() => isFirstRun(), []);
+  // Decided once when the app opens; adding players during set-up must not close it.
+  const [showSetup, setShowSetup] = useState<boolean | null>(null);
+  if (showSetup === null && firstRun !== undefined) setShowSetup(firstRun);
+
+  if (showSetup) {
+    return (
+      <>
+        <OnboardingWizard
+          onDone={() => {
+            setShowSetup(false);
+            setTab('roster');
+          }}
+        />
+        <ReloadPrompt />
+      </>
+    );
+  }
 
   return (
     <div className="app">

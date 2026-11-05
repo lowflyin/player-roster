@@ -695,3 +695,71 @@ button.print-button {
 #team-name::placeholder {
   font-style: italic;
 }
+
+/* First-run set-up wizard: fills the screen until finished or skipped. */
+.wizard {
+  min-height: 100dvh;
+  background: var(--bg);
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);
+}
+
+.wizard-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.wizard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.wizard-welcome {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.wizard-progress {
+  list-style: none;
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-progress li {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.wizard-progress li.done {
+  background: var(--brand);
+}
+
+.wizard .hint {
+  margin-bottom: 16px;
+}
+
+.wizard h2 {
+  margin-top: 8px;
+  outline: none;
+}
+
+.wizard-intro {
+  margin-top: 0;
+}
+
+/* A button that reads as a text link, e.g. "Skip setup". */
+button.link-button {
+  background: transparent;
+  color: var(--muted);
+  padding: 0 4px;
+  font-weight: 500;
+  text-decoration: underline;
+  white-space: nowrap;
+}
