@@ -613,3 +613,23 @@ button.danger-solid {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Same height as an h2 and its bottom margin, for a page whose heading is hidden. */
+.heading-space {
+  height: calc(1.125rem * 1.2);
+  margin-bottom: 12px;
+}
+
+/*
+ * Version number on Settings, pinned just above the Settings button in the
+ * bottom bar: the same width as one of its four buttons, at its right-hand end.
+ */
+.hint.version {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 61px + 8px); /* bar height + a gap */
+  width: calc((100% - 32px - 3 * 8px) / 4); /* bar padding and gaps */
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+}

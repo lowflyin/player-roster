@@ -9,7 +9,9 @@ export function SettingsPage() {
 
   return (
     <section>
-      <h2>Team settings</h2>
+      <h2 className="visually-hidden">Team settings</h2>
+      {/* Keeps the space the heading used to take, so the layout does not move up. */}
+      <div className="heading-space" aria-hidden="true" />
 
       <div className="field">
         <label htmlFor="team-name">Team Name</label>
@@ -24,7 +26,7 @@ export function SettingsPage() {
         />
       </div>
 
-      <p className="hint">Version {__APP_VERSION__}</p>
+      <p className="hint version">Version {__APP_VERSION__}</p>
     </section>
   );
 }
