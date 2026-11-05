@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import { DEFAULT_QUARTER_MINUTES, type Position } from '../domain/netball';
 import { assignPosition, type QuarterLineup } from '../domain/lineup';
 import { generateRotation, homePositions } from '../domain/rotation';
-import { planFromHistory } from '../domain/history';
+import { planFromHistory, type PastGame } from '../domain/history';
 
 export interface Player {
   id: string;
@@ -31,6 +31,8 @@ export interface Match {
   playerIds: string[];
   /** One lineup per quarter. */
   quarters: QuarterLineup[];
+  /** Layouts replaced by Re-allocate, most recent first, so pressing again moves players on. */
+  previousLayouts?: QuarterLineup[][];
   createdAt: number;
 }
 
@@ -79,7 +81,7 @@ export async function removePlayer(id: string): Promise<void> {
     for (const match of upcoming) {
       if (!match.playerIds.includes(id)) continue;
       const playerIds = match.playerIds.filter((p) => p !== id);
-      await db.matches.update(match.id, { playerIds, quarters: rotate(playerIds, match.quarters) });
+      await db.matches.update(match.id, { playerIds, quarters: await rotate(match, playerIds) });
     }
   });
 }
@@ -93,9 +95,13 @@ export async function saveSettings(changes: Partial<Omit<TeamSettings, 'id'>>): 
   await db.settings.put({ ...current, ...changes });
 }
 
-/** A fresh fair rotation for `playerIds`, keeping each player's current main position. */
-function rotate(playerIds: string[], quarters: QuarterLineup[]): QuarterLineup[] {
-  return generateRotation(playerIds, homePositions(quarters, playerIds));
+/**
+ * A fresh fair rotation for a match's new squad, keeping each player's current
+ * main position. Who gets more or less court time follows the weekly rules.
+ */
+async function rotate(match: Match, playerIds: string[]): Promise<QuarterLineup[]> {
+  const plan = await planWeek(playerIds, match.date, match.createdAt);
+  return generateRotation(playerIds, homePositions(match.quarters, playerIds), plan.extraFirst);
 }
 
 /**
@@ -104,12 +110,17 @@ function rotate(playerIds: string[], quarters: QuarterLineup[]): QuarterLineup[]
  * week to week. A game counts as earlier if it's on an earlier date, or on
  * the same date and was created first.
  */
-async function planWeek(playerIds: string[], date: string, createdAt: number) {
+async function planWeek(
+  playerIds: string[],
+  date: string,
+  createdAt: number,
+  replacedLayouts: PastGame[] = [],
+) {
   const earlier = (await db.matches.where('date').belowOrEqual(date).toArray()).filter(
     (m) => m.date < date || m.createdAt < createdAt,
   );
   earlier.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
-  return planFromHistory(playerIds, earlier);
+  return planFromHistory(playerIds, earlier, replacedLayouts);
 }
 
 /** Creates a match with positions allocated, planned from the weeks before it. */
@@ -125,7 +136,7 @@ export async function createMatch(
     opponent: details.opponent.trim(),
     court: details.court?.trim(),
     playerIds: plan.order,
-    quarters: generateRotation(plan.order, plan.homes),
+    quarters: generateRotation(plan.order, plan.homes, plan.extraFirst),
     createdAt,
   };
   await db.matches.add(match);
@@ -159,18 +170,26 @@ export async function setMatchPosition(
   });
 }
 
+// How many replaced layouts a match remembers for Re-allocate.
+const MAX_LAYOUTS = 6;
+
 /**
- * Re-plans a match's positions from the weeks before it, as if it had just
- * been created. Replaces manual changes.
+ * Gives a match new positions: players move off their current position (and
+ * current substitutes come on), avoiding positions from earlier weeks too.
+ * Replaces manual changes; pressing again moves everyone on again rather
+ * than back to an earlier layout.
  */
 export async function reallocateMatch(matchId: string): Promise<void> {
   await db.transaction('rw', db.matches, async () => {
     const match = await db.matches.get(matchId);
     if (!match) return;
-    const plan = await planWeek(match.playerIds, match.date, match.createdAt);
+    const layouts = [match.quarters, ...(match.previousLayouts ?? [])].slice(0, MAX_LAYOUTS);
+    const replaced = layouts.map((quarters) => ({ playerIds: match.playerIds, quarters }));
+    const plan = await planWeek(match.playerIds, match.date, match.createdAt, replaced);
     await db.matches.update(matchId, {
       playerIds: plan.order,
-      quarters: generateRotation(plan.order, plan.homes),
+      quarters: generateRotation(plan.order, plan.homes, plan.extraFirst),
+      previousLayouts: layouts,
     });
   });
 }
@@ -191,6 +210,6 @@ export async function setMatchPlayerSelected(
     const playerIds = selected
       ? [...match.playerIds, playerId]
       : match.playerIds.filter((id) => id !== playerId);
-    await db.matches.update(matchId, { playerIds, quarters: rotate(playerIds, match.quarters) });
+    await db.matches.update(matchId, { playerIds, quarters: await rotate(match, playerIds) });
   });
 }

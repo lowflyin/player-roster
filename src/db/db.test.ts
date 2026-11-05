@@ -1,5 +1,6 @@
 import { homePositions } from '../domain/rotation';
-import { addPlayer, createMatch, db, reallocateMatch } from './db';
+import { quartersPlayed } from '../domain/lineup';
+import { addPlayer, createMatch, db, reallocateMatch, setMatchPlayerSelected } from './db';
 
 describe('createMatch', () => {
   it('moves every player to a new position the following week', async () => {
@@ -41,5 +42,74 @@ describe('createMatch', () => {
     for (const id of ids) expect(homes2.get(id)).not.toBe(homes1.get(id));
     // Week 1 itself is untouched.
     expect((await db.matches.get(week1.id))!.quarters).toEqual(week1.quarters);
+  });
+
+  it('swaps positions every time Re-allocate is pressed, even in the first game', async () => {
+    const ids: string[] = [];
+    for (const name of ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby']) {
+      ids.push((await addPlayer(name)).id);
+    }
+    const match = await createMatch({
+      opponent: '',
+      court: '',
+      quarterMinutes: 10,
+      playerIds: ids,
+      date: '2026-11-07',
+    });
+
+    // Every press: nobody goes back to a position they had in any earlier layout
+    // of this game, and the substitute before the press gets a position.
+    const layouts = [homePositions(match.quarters, match.playerIds)];
+    for (let press = 0; press < 3; press++) {
+      await reallocateMatch(match.id);
+      const after = (await db.matches.get(match.id))!;
+      const homes = homePositions(after.quarters, after.playerIds);
+      for (const id of ids) {
+        const earlier = layouts.map((l) => l.get(id)).filter(Boolean);
+        if (homes.has(id))
+          expect({ press, id, repeat: earlier.includes(homes.get(id)) }).toEqual({
+            press,
+            id,
+            repeat: false,
+          });
+      }
+      const subBefore = ids.find((id) => !layouts.at(-1)!.has(id))!;
+      expect(homes.has(subBefore)).toBe(true);
+      layouts.push(homes);
+    }
+  });
+});
+
+describe('setMatchPlayerSelected', () => {
+  it('keeps last week’s court-time rules when a player is unticked', async () => {
+    const ids: string[] = [];
+    for (const name of ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby', 'Zoe']) {
+      ids.push((await addPlayer(name)).id);
+    }
+    const eight = ids.slice(0, 8);
+    const week1 = await createMatch({
+      opponent: '',
+      court: '',
+      quarterMinutes: 10,
+      playerIds: eight,
+      date: '2026-11-07',
+    });
+    const week2 = await createMatch({
+      opponent: '',
+      court: '',
+      quarterMinutes: 10,
+      playerIds: ids,
+      date: '2026-11-14',
+    });
+
+    // Zoe can't make it: back to the same 8 players as week 1.
+    await setMatchPlayerSelected(week2.id, ids[8]!, false);
+
+    const after = (await db.matches.get(week2.id))!;
+    for (const id of eight) {
+      if (quartersPlayed(week1.quarters, id) === 4) {
+        expect(quartersPlayed(after.quarters, id)).toBeLessThan(4);
+      }
+    }
   });
 });

@@ -85,7 +85,8 @@ describe('RosterPage', () => {
     render(<RosterPage />);
     await createMatch(user);
 
-    // Move Ava (GS) to the bench in Q1, then re-allocate: the gap is filled again.
+    // Move Ava (GS) to the bench in Q1, then re-allocate: the gap is filled and
+    // players swap, so Ava is no longer the Goal Shooter.
     await user.click(screen.getByRole('button', { name: 'Ava, quarter 1: Goal Shooter' }));
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Bench' }));
     expect(await screen.findByText('6/7')).toBeInTheDocument();
@@ -95,7 +96,8 @@ describe('RosterPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Re-allocate' }));
 
     await waitFor(() => expect(screen.getAllByText('7/7')).toHaveLength(4));
-    expect(screen.getByRole('button', { name: 'Ava, quarter 1: Goal Shooter' })).toBeVisible();
+    const avaAtGS = screen.queryAllByRole('button', { name: /^Ava, quarter \d: Goal Shooter$/ });
+    expect(avaAtGS.length).toBeLessThan(2);
   });
 
   it('closes an open edit form when switching match', async () => {
@@ -107,9 +109,31 @@ describe('RosterPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Edit court and opponent' }));
     const select = screen.getByLabelText('Match');
-    await user.selectOptions(select, within(select).getAllByRole('option')[0]!);
+    // Both matches share a date, so pick whichever one isn't selected.
+    const other = within(select)
+      .getAllByRole<HTMLOptionElement>('option')
+      .find((option) => !option.selected)!;
+    await user.selectOptions(select, other);
 
     expect(await screen.findByRole('region', { name: 'Match' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+  });
+
+  it('lists players in the same order every match', async () => {
+    for (const name of NAMES) await addPlayer(name);
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    const rowNames = () =>
+      screen
+        .getAllByRole('rowheader')
+        .map((cell) => cell.querySelector('.matrix-name')?.textContent);
+
+    await createMatch(user);
+    const week1 = rowNames().filter(Boolean);
+    await createMatch(user); // positions rotate in the second match
+    const week2 = rowNames().filter(Boolean);
+
+    expect(week1).toEqual([...NAMES].sort());
+    expect(week2).toEqual(week1);
   });
 });

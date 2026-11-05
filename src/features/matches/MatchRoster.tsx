@@ -8,11 +8,9 @@ import {
   setMatchPosition,
   updateMatch,
   type Match,
-  type Player,
 } from '../../db/db';
 import { POSITION_NAMES, POSITION_ZONES, POSITIONS } from '../../domain/netball';
 import { positionOf, quartersPlayed, unfilledPositions } from '../../domain/lineup';
-import { HOME_POSITION_ORDER, homePositions } from '../../domain/rotation';
 import { formatMatchDate } from './format';
 import { PositionPicker } from './PositionPicker';
 import { ConfirmSheet } from '../../components/ConfirmSheet';
@@ -39,7 +37,9 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
 
   const byId = new Map(players.map((p) => [p.id, p]));
   const nameOf = (id: string) => byId.get(id)?.name ?? 'Unknown';
-  const squad = sortByHomePosition(match, byId);
+  // Same order as the Team tab (players are loaded by name), so each player
+  // keeps their row from match to match as positions rotate.
+  const squad = players.filter((p) => match.playerIds.includes(p.id));
   const selectedPlayer = selection ? byId.get(selection.playerId) : undefined;
 
   async function handleReallocate() {
@@ -152,7 +152,7 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
       {confirmingReallocate && (
         <ConfirmSheet
           title="Re-allocate positions?"
-          message="Positions are planned afresh from earlier games. Any changes you have made to this game are replaced."
+          message="Players swap to new positions, avoiding positions from this game and earlier weeks. Any changes you have made to this game are replaced."
           confirmLabel="Re-allocate"
           onConfirm={handleReallocate}
           onCancel={() => setConfirmingReallocate(false)}
@@ -174,19 +174,6 @@ export function MatchRoster({ matchId, onDeleted }: Props) {
       )}
     </>
   );
-}
-
-/** Players in court order of their main position (GS first), substitutes last by name. */
-function sortByHomePosition(match: Match, byId: Map<string, Player>): Player[] {
-  const homes = homePositions(match.quarters, match.playerIds);
-  const rank = (id: string) => {
-    const home = homes.get(id);
-    return home ? HOME_POSITION_ORDER.indexOf(home) : HOME_POSITION_ORDER.length;
-  };
-  return match.playerIds
-    .map((id) => byId.get(id))
-    .filter((p): p is Player => p !== undefined)
-    .sort((a, b) => rank(a.id) - rank(b.id) || a.name.localeCompare(b.name));
 }
 
 function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }) {

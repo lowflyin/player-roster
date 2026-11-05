@@ -6,7 +6,7 @@ export const HOME_POSITION_ORDER: Position[] = ['GS', 'GA', 'WA', 'C', 'GK', 'GD
 
 // When only some home players need a rest, rest them in this order so the
 // breaks are spread across attack, centre and defence.
-const REST_ORDER: Position[] = ['GS', 'C', 'GK', 'GA', 'WD', 'WA', 'GD'];
+export const REST_ORDER: Position[] = ['GS', 'C', 'GK', 'GA', 'WD', 'WA', 'GD'];
 
 /**
  * Each player's main position in an existing rotation: the one they play most.
@@ -42,15 +42,17 @@ export function homePositions(
  *   one, otherwise the next open position in HOME_POSITION_ORDER, in list order.
  * - Any further players are substitutes and start without a position.
  * - Court time is shared as evenly as quarters allow (everyone plays within
- *   one quarter of everyone else), with home players keeping any extra quarter.
+ *   one quarter of everyone else). Players listed in `extraFirst` get any
+ *   extra quarter first; otherwise home players keep it.
  * - Home players only ever play their home position; substitutes fill the
  *   positions of whoever is resting, staying in the same position where possible.
  */
 export function generateRotation(
   playerIds: string[],
   keepHomes: Map<string, Position> = new Map(),
-  quarters: number = QUARTERS_PER_GAME,
+  extraFirst: string[] = [],
 ): QuarterLineup[] {
+  const quarters = QUARTERS_PER_GAME;
   const homeOf = new Map<string, Position>();
   const taken = new Set<Position>();
   for (const id of playerIds) {
@@ -78,12 +80,16 @@ export function generateRotation(
   const base = Math.floor(totalSlots / Math.max(playerIds.length, 1));
   let extra = totalSlots - base * playerIds.length;
 
-  // Players who get the extra quarter: home players first (fewest changes),
-  // least-rested positions first, then substitutes.
+  // Players who get the extra quarter: anyone in extraFirst, in that order;
+  // then home players (fewest changes), least-rested positions first; then substitutes.
   const restOrderedHome = [...home].sort(
     (a, b) => REST_ORDER.indexOf(homeOf.get(a)!) - REST_ORDER.indexOf(homeOf.get(b)!),
   );
-  const extraPriority = [...[...restOrderedHome].reverse(), ...subs];
+  const extraPriority = [
+    ...extraFirst.filter((id) => playerIds.includes(id)),
+    ...[...restOrderedHome].reverse(),
+    ...subs,
+  ].filter((id, i, all) => all.indexOf(id) === i);
   const sits = new Map<string, number>();
   for (const id of extraPriority) {
     const played = base + (extra > 0 ? 1 : 0);
