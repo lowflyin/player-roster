@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { saveSettings } from './db/db';
@@ -47,16 +47,22 @@ describe('App', () => {
     expect(await screen.findByText('Diamonds')).toBeInTheDocument();
   });
 
-  it('opens Team Name empty with the prompt, showing the saved name below', async () => {
+  it('keeps the Roster team name the same as the Settings box, blank when empty', async () => {
     await saveSettings({ teamName: 'Snowgums' });
     const user = userEvent.setup();
     render(<App />);
+    expect(await screen.findByText('Snowgums')).toBeInTheDocument(); // Roster tab
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
-
     const box = screen.getByLabelText('Team Name');
-    expect(box).toHaveValue('');
+    await waitFor(() => expect(box).toHaveValue('Snowgums'));
+    expect(screen.queryByText(/Current team name/)).not.toBeInTheDocument();
+
+    await user.clear(box);
     expect(box).toHaveAttribute('placeholder', 'Enter Team Name');
-    expect(await screen.findByText('Current team name: Snowgums')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Roster' }));
+
+    await waitFor(() => expect(screen.queryByText('Snowgums')).not.toBeInTheDocument());
+    expect(document.querySelector('.team-name')).toBeNull();
   });
 });
