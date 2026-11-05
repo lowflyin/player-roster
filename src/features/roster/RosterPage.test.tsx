@@ -6,12 +6,12 @@ import { RosterPage } from './RosterPage';
 const NAMES = ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby'];
 
 async function createMatch(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(await screen.findByRole('button', { name: 'New match' }));
+  await user.click(await screen.findByRole('button', { name: 'New game' }));
   await user.type(screen.getByLabelText('Opponent'), 'Northside Comets');
   await user.type(screen.getByLabelText('Court'), '4');
   await screen.findByLabelText('Ruby');
-  await user.click(screen.getByRole('button', { name: 'Create match' }));
-  await screen.findByRole('region', { name: 'Match' });
+  await user.click(screen.getByRole('button', { name: 'Create game' }));
+  await screen.findByRole('region', { name: 'Game' });
 }
 
 const cells = (name: string) =>
@@ -26,7 +26,7 @@ describe('RosterPage', () => {
     render(<RosterPage />);
     await createMatch(user);
 
-    const bar = screen.getByRole('region', { name: 'Match' });
+    const bar = screen.getByRole('region', { name: 'Game' });
     expect(bar).toHaveTextContent('Court4');
     expect(bar).toHaveTextContent('vsNorthside Comets');
 
@@ -62,7 +62,7 @@ describe('RosterPage', () => {
     await user.type(screen.getByLabelText('Court'), '7');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(await screen.findByRole('region', { name: 'Match' })).toHaveTextContent('Court7');
+    expect(await screen.findByRole('region', { name: 'Game' })).toHaveTextContent('Court7');
   });
 
   it('deletes the match from the edit form', async () => {
@@ -72,11 +72,11 @@ describe('RosterPage', () => {
     await createMatch(user);
 
     await user.click(screen.getByRole('button', { name: 'Edit court and opponent' }));
-    await user.click(screen.getByRole('button', { name: 'Delete match' }));
-    const dialog = screen.getByRole('alertdialog', { name: 'Delete this match?' });
+    await user.click(screen.getByRole('button', { name: 'Delete game' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete this game?' });
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
-    expect(await screen.findByText(/No matches yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No games yet/)).toBeInTheDocument();
   });
 
   it('re-allocates after confirming in the app', async () => {
@@ -108,14 +108,14 @@ describe('RosterPage', () => {
     await createMatch(user); // a second one, now selected
 
     await user.click(screen.getByRole('button', { name: 'Edit court and opponent' }));
-    const select = screen.getByLabelText('Match');
+    const select = screen.getByLabelText('Game');
     // Both matches share a date, so pick whichever one isn't selected.
     const other = within(select)
       .getAllByRole<HTMLOptionElement>('option')
       .find((option) => !option.selected)!;
     await user.selectOptions(select, other);
 
-    expect(await screen.findByRole('region', { name: 'Match' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Game' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
   });
 

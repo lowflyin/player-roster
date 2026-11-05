@@ -14,14 +14,7 @@ export const POSITION_NAMES: Record<Position, string> = {
 
 export const QUARTERS_PER_GAME = 4;
 
-/** Common junior competition quarter lengths, in minutes. */
-export const QUARTER_LENGTH_OPTIONS = [8, 10, 12, 15] as const;
-
 export const DEFAULT_QUARTER_MINUTES = 10;
-
-export function totalGameMinutes(quarterMinutes: number): number {
-  return quarterMinutes * QUARTERS_PER_GAME;
-}
 
 export type Zone = 'attack' | 'centre' | 'defence';
 

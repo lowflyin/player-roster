@@ -24,19 +24,19 @@ export function MatchesPage() {
   return (
     <section>
       <div className="section-header">
-        <h2>Matches</h2>
-        <button onClick={() => setView({ kind: 'new' })}>New match</button>
+        <h2>Games</h2>
+        <button onClick={() => setView({ kind: 'new' })}>New game</button>
       </div>
 
       {matches === undefined ? null : matches.length === 0 ? (
-        <p className="empty">No matches yet. Create one to plan positions for each quarter.</p>
+        <p className="empty">No games yet. Create one to plan positions for each quarter.</p>
       ) : (
         <ul className="match-list">
           {matches.map((match) => (
             <li key={match.id}>
               <button onClick={() => setView({ kind: 'match', id: match.id })}>
                 <span className="match-title">
-                  {match.opponent ? `vs ${match.opponent}` : 'Match'}
+                  {match.opponent ? `vs ${match.opponent}` : 'Game'}
                 </span>
                 <span className="match-meta">
                   {formatMatchDate(match.date)} · {match.playerIds.length} players

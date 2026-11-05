@@ -7,7 +7,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    expect(await screen.findByText(/No matches yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No games yet/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Team' }));
     await user.type(screen.getByLabelText('Player name'), 'Ruby');
@@ -15,22 +15,23 @@ describe('App', () => {
     expect(await screen.findByText('Ruby')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Roster' }));
-    await user.click(await screen.findByRole('button', { name: 'New match' }));
+    await user.click(await screen.findByRole('button', { name: 'New game' }));
     await screen.findByLabelText('Ruby');
-    await user.click(screen.getByRole('button', { name: 'Create match' }));
+    await user.click(screen.getByRole('button', { name: 'Create game' }));
 
-    const bar = await screen.findByRole('region', { name: 'Match' });
+    const bar = await screen.findByRole('region', { name: 'Game' });
     expect(within(bar).getByText('Opponent not set')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ruby, quarter 1: Goal Shooter' })).toBeVisible();
   });
 
-  it('saves the quarter length setting', async () => {
+  it('saves the team name setting, with no quarter length to set', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
-    await user.selectOptions(screen.getByLabelText('Quarter length'), '12');
+    await user.type(screen.getByLabelText('Team name'), 'Diamonds');
 
-    expect(await screen.findByText('Total game time: 48 minutes')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Diamonds')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Quarter length')).not.toBeInTheDocument();
   });
 });

@@ -10,13 +10,13 @@ describe('MatchesPage', () => {
     const user = userEvent.setup();
     render(<MatchesPage />);
 
-    await user.click(screen.getByRole('button', { name: 'New match' }));
+    await user.click(screen.getByRole('button', { name: 'New game' }));
     await user.type(screen.getByLabelText('Opponent'), 'Comets');
     await user.type(screen.getByLabelText('Court'), '3');
     expect(await screen.findByLabelText('Mia')).toBeChecked();
-    await user.click(screen.getByRole('button', { name: 'Create match' }));
+    await user.click(screen.getByRole('button', { name: 'Create game' }));
 
-    const bar = await screen.findByRole('region', { name: 'Match' });
+    const bar = await screen.findByRole('region', { name: 'Game' });
     expect(bar).toHaveTextContent('Court3');
     expect(bar).toHaveTextContent('Comets');
 

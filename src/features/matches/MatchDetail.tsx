@@ -9,7 +9,7 @@ export function MatchDetail({ matchId, onBack }: Props) {
   return (
     <section>
       <button className="secondary back" onClick={onBack}>
-        ‹ Matches
+        ‹ Games
       </button>
 
       <MatchRoster matchId={matchId} onDeleted={onBack} />

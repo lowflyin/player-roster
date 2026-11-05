@@ -125,14 +125,17 @@ async function planWeek(
 
 /** Creates a match with positions allocated, planned from the weeks before it. */
 export async function createMatch(
-  details: Pick<Match, 'opponent' | 'court' | 'date' | 'quarterMinutes' | 'playerIds'>,
+  details: Pick<Match, 'opponent' | 'court' | 'date' | 'playerIds'>,
 ): Promise<Match> {
   const createdAt = Date.now();
+  // Quarter length is no longer asked for; games keep the stored default.
+  const { quarterMinutes } = await getSettings();
   const plan = await planWeek(details.playerIds, details.date, createdAt);
 
   const match: Match = {
     id: crypto.randomUUID(),
     ...details,
+    quarterMinutes,
     opponent: details.opponent.trim(),
     court: details.court?.trim(),
     playerIds: plan.order,

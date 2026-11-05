@@ -1,8 +1,7 @@
 # Netball Player Roster
 
 An offline-first Progressive Web App (PWA) for coaches and managers of junior netball teams.
-Track your squad and the positions players have played, with configurable quarter lengths
-(e.g. 10 or 12 minutes) to suit different competitions.
+Track your squad and plan fair four-quarter rosters that rotate positions from week to week.
 
 All data is stored on the device (IndexedDB). There is no backend and no account.
 
@@ -90,7 +89,7 @@ mid-game.
 
 - Player details and preferred positions
 - ~~Game day: record who played which position each quarter~~ (Matches tab)
-- Game-time tracking per player (respecting quarter length)
+- Game-time tracking per player
 - Suggested line-ups for fair rotation
 - Share a line-up as an image (Web Share API → WhatsApp) and print-friendly view
 - Backup / restore data to a file

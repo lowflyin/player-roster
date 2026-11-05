@@ -10,7 +10,7 @@ type Tab = 'roster' | 'team' | 'matches' | 'settings';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'roster', label: 'Roster' },
   { id: 'team', label: 'Team' },
-  { id: 'matches', label: 'Matches' },
+  { id: 'matches', label: 'Games' },
   { id: 'settings', label: 'Settings' },
 ];
 

@@ -235,12 +235,12 @@ function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }
           className="secondary danger delete-match"
           onClick={() => setConfirmingDelete(true)}
         >
-          Delete match
+          Delete game
         </button>
         {confirmingDelete && (
           <ConfirmSheet
-            title="Delete this match?"
-            message="The match and its positions are removed. This cannot be undone."
+            title="Delete this game?"
+            message="The game and its positions are removed. This cannot be undone."
             confirmLabel="Delete"
             danger
             onConfirm={handleDelete}
@@ -252,7 +252,7 @@ function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }
   }
 
   return (
-    <div className="match-bar" role="region" aria-label="Match">
+    <div className="match-bar" role="region" aria-label="Game">
       <div className="match-bar-court">
         <span className="match-bar-label">Court</span>
         <span className="match-bar-value">{match.court || '–'}</span>
@@ -260,9 +260,7 @@ function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }
       <div className="match-bar-opponent">
         <span className="match-bar-label">vs</span>
         <span className="match-bar-value">{match.opponent || 'Opponent not set'}</span>
-        <span className="match-bar-date">
-          {formatMatchDate(match.date)} · {match.quarterMinutes} min quarters
-        </span>
+        <span className="match-bar-date">{formatMatchDate(match.date)}</span>
       </div>
       <button className="secondary" onClick={startEditing} aria-label="Edit court and opponent">
         Edit

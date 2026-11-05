@@ -30,19 +30,19 @@ export function RosterPage() {
     <section>
       <div className="section-header actions-only">
         <h2 className="visually-hidden">Roster</h2>
-        <button onClick={() => setCreating(true)}>New match</button>
+        <button onClick={() => setCreating(true)}>New game</button>
       </div>
 
       {!current ? (
         <p className="empty">
-          No matches yet. Create one and positions are allocated for all four quarters.
+          No games yet. Create one and positions are allocated for all four quarters.
         </p>
       ) : (
         <>
           {matches.length > 1 && (
             <div className="field">
               <label htmlFor="roster-match" className="visually-hidden">
-                Match
+                Game
               </label>
               <select
                 id="roster-match"

@@ -8,7 +8,7 @@ describe('createMatch', () => {
     for (const name of ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia', 'Ruby']) {
       ids.push((await addPlayer(name)).id);
     }
-    const details = { opponent: '', court: '', quarterMinutes: 10, playerIds: ids };
+    const details = { opponent: '', court: '', playerIds: ids };
 
     const week1 = await createMatch({ ...details, date: '2026-11-07' });
     const week2 = await createMatch({ ...details, date: '2026-11-14' });
@@ -28,7 +28,7 @@ describe('createMatch', () => {
     for (const name of ['Ava', 'Chloe', 'Grace', 'Harper', 'Isla', 'Lily', 'Mia']) {
       ids.push((await addPlayer(name)).id);
     }
-    const details = { opponent: '', court: '', quarterMinutes: 10, playerIds: ids };
+    const details = { opponent: '', court: '', playerIds: ids };
     const week1 = await createMatch({ ...details, date: '2026-11-07' });
     const week2 = await createMatch({ ...details, date: '2026-11-14' });
     // A game made before weekly planning existed: same positions as week 1.
@@ -52,7 +52,7 @@ describe('createMatch', () => {
     const match = await createMatch({
       opponent: '',
       court: '',
-      quarterMinutes: 10,
+
       playerIds: ids,
       date: '2026-11-07',
     });
@@ -90,14 +90,14 @@ describe('setMatchPlayerSelected', () => {
     const week1 = await createMatch({
       opponent: '',
       court: '',
-      quarterMinutes: 10,
+
       playerIds: eight,
       date: '2026-11-07',
     });
     const week2 = await createMatch({
       opponent: '',
       court: '',
-      quarterMinutes: 10,
+
       playerIds: ids,
       date: '2026-11-14',
     });
