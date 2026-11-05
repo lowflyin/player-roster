@@ -1,6 +1,14 @@
 import { homePositions } from '../domain/rotation';
 import { quartersPlayed } from '../domain/lineup';
-import { addPlayer, createMatch, db, reallocateMatch, setMatchPlayerSelected } from './db';
+import {
+  addPlayer,
+  createMatch,
+  db,
+  getSettings,
+  reallocateMatch,
+  saveSettings,
+  setMatchPlayerSelected,
+} from './db';
 
 describe('createMatch', () => {
   it('moves every player to a new position the following week', async () => {
@@ -111,5 +119,16 @@ describe('setMatchPlayerSelected', () => {
         expect(quartersPlayed(after.quarters, id)).toBeLessThan(4);
       }
     }
+  });
+});
+
+describe('saveSettings', () => {
+  it('keeps every change when saves overlap', async () => {
+    await Promise.all([
+      saveSettings({ teamName: 'S' }),
+      saveSettings({ currentMatchId: 'm1' }),
+      saveSettings({ teamName: 'Snowgums' }),
+    ]);
+    expect(await getSettings()).toMatchObject({ teamName: 'Snowgums', currentMatchId: 'm1' });
   });
 });

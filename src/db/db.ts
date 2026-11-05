@@ -90,9 +90,16 @@ export async function getSettings(): Promise<TeamSettings> {
   return (await db.settings.get('team')) ?? DEFAULT_SETTINGS;
 }
 
+/**
+ * Read and write in one transaction, so saves that overlap (one per letter
+ * typed, or the team name and the current match at once) run one after
+ * another and never overwrite each other's changes.
+ */
 export async function saveSettings(changes: Partial<Omit<TeamSettings, 'id'>>): Promise<void> {
-  const current = await getSettings();
-  await db.settings.put({ ...current, ...changes });
+  await db.transaction('rw', db.settings, async () => {
+    const current = (await db.settings.get('team')) ?? DEFAULT_SETTINGS;
+    await db.settings.put({ ...current, ...changes });
+  });
 }
 
 /**
