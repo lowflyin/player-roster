@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
+import { saveSettings } from './db/db';
 
 describe('App', () => {
   it('adds a player on the Team tab and puts them in a match roster', async () => {
@@ -44,5 +45,18 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Roster' }));
 
     expect(await screen.findByText('Diamonds')).toBeInTheDocument();
+  });
+
+  it('opens Team Name empty with the prompt, showing the saved name below', async () => {
+    await saveSettings({ teamName: 'Snowgums' });
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }));
+
+    const box = screen.getByLabelText('Team Name');
+    expect(box).toHaveValue('');
+    expect(box).toHaveAttribute('placeholder', 'Enter Team Name');
+    expect(await screen.findByText('Current team name: Snowgums')).toBeInTheDocument();
   });
 });
