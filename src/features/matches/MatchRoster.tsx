@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   db,
+  deleteMatch,
   reallocateMatch,
   setMatchPlayerSelected,
   setMatchPosition,
@@ -14,6 +15,7 @@ import { positionOf, quartersPlayed, unfilledPositions } from '../../domain/line
 import { HOME_POSITION_ORDER, homePositions } from '../../domain/rotation';
 import { formatMatchDate } from './format';
 import { PositionPicker } from './PositionPicker';
+import { ConfirmSheet } from '../../components/ConfirmSheet';
 
 interface Selection {
   playerId: string;
@@ -21,10 +23,17 @@ interface Selection {
 }
 
 /** Match bar, player × quarter position grid and who's playing, for one match. */
-export function MatchRoster({ matchId }: { matchId: string }) {
+interface Props {
+  matchId: string;
+  /** Called after the coach deletes the match. */
+  onDeleted?: () => void;
+}
+
+export function MatchRoster({ matchId, onDeleted }: Props) {
   const match = useLiveQuery(() => db.matches.get(matchId), [matchId]);
   const players = useLiveQuery(() => db.players.orderBy('name').toArray(), []);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [confirmingReallocate, setConfirmingReallocate] = useState(false);
 
   if (!match || !players) return null;
 
@@ -34,13 +43,13 @@ export function MatchRoster({ matchId }: { matchId: string }) {
   const selectedPlayer = selection ? byId.get(selection.playerId) : undefined;
 
   async function handleReallocate() {
-    if (!window.confirm('Re-allocate positions? This replaces any changes you have made.')) return;
+    setConfirmingReallocate(false);
     await reallocateMatch(matchId);
   }
 
   return (
     <>
-      <MatchBar match={match} />
+      <MatchBar match={match} onDeleted={onDeleted} />
 
       <ZoneLegend />
 
@@ -115,7 +124,11 @@ export function MatchRoster({ matchId }: { matchId: string }) {
       <p className="hint">Tap a square to change a position. Blank squares are substitutes.</p>
 
       <div className="match-actions">
-        <button className="secondary" onClick={handleReallocate} disabled={squad.length === 0}>
+        <button
+          className="secondary"
+          onClick={() => setConfirmingReallocate(true)}
+          disabled={squad.length === 0}
+        >
           Re-allocate positions
         </button>
       </div>
@@ -135,6 +148,16 @@ export function MatchRoster({ matchId }: { matchId: string }) {
         ))}
         <p className="hint">Unticking a player takes them out and shares their court time.</p>
       </fieldset>
+
+      {confirmingReallocate && (
+        <ConfirmSheet
+          title="Re-allocate positions?"
+          message="Positions are planned afresh from earlier games. Any changes you have made to this game are replaced."
+          confirmLabel="Re-allocate"
+          onConfirm={handleReallocate}
+          onCancel={() => setConfirmingReallocate(false)}
+        />
+      )}
 
       {selection && selectedPlayer && (
         <PositionPicker
@@ -166,10 +189,11 @@ function sortByHomePosition(match: Match, byId: Map<string, Player>): Player[] {
     .sort((a, b) => rank(a.id) - rank(b.id) || a.name.localeCompare(b.name));
 }
 
-function MatchBar({ match }: { match: Match }) {
+function MatchBar({ match, onDeleted }: { match: Match; onDeleted?: () => void }) {
   const [editing, setEditing] = useState(false);
   const [court, setCourt] = useState('');
   const [opponent, setOpponent] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   function startEditing() {
     setCourt(match.court ?? '');
@@ -181,6 +205,12 @@ function MatchBar({ match }: { match: Match }) {
     event.preventDefault();
     await updateMatch(match.id, { court: court.trim(), opponent: opponent.trim() });
     setEditing(false);
+  }
+
+  async function handleDelete() {
+    setConfirmingDelete(false);
+    await deleteMatch(match.id);
+    onDeleted?.();
   }
 
   if (editing) {
@@ -213,6 +243,23 @@ function MatchBar({ match }: { match: Match }) {
           </button>
           <button type="submit">Save</button>
         </div>
+        <button
+          type="button"
+          className="secondary danger delete-match"
+          onClick={() => setConfirmingDelete(true)}
+        >
+          Delete match
+        </button>
+        {confirmingDelete && (
+          <ConfirmSheet
+            title="Delete this match?"
+            message="The match and its positions are removed. This cannot be undone."
+            confirmLabel="Delete"
+            danger
+            onConfirm={handleDelete}
+            onCancel={() => setConfirmingDelete(false)}
+          />
+        )}
       </form>
     );
   }

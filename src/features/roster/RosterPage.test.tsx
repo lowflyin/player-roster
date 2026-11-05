@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { addPlayer } from '../../db/db';
 import { RosterPage } from './RosterPage';
@@ -63,5 +63,53 @@ describe('RosterPage', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByRole('region', { name: 'Match' })).toHaveTextContent('Court7');
+  });
+
+  it('deletes the match from the edit form', async () => {
+    await addPlayer('Ruby');
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user);
+
+    await user.click(screen.getByRole('button', { name: 'Edit court and opponent' }));
+    await user.click(screen.getByRole('button', { name: 'Delete match' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete this match?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText(/No matches yet/)).toBeInTheDocument();
+  });
+
+  it('re-allocates after confirming in the app', async () => {
+    for (const name of NAMES) await addPlayer(name);
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user);
+
+    // Move Ava (GS) to the bench in Q1, then re-allocate: the gap is filled again.
+    await user.click(screen.getByRole('button', { name: 'Ava, quarter 1: Goal Shooter' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Bench' }));
+    expect(await screen.findByText('6/7')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Re-allocate positions' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Re-allocate positions?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Re-allocate' }));
+
+    await waitFor(() => expect(screen.getAllByText('7/7')).toHaveLength(4));
+    expect(screen.getByRole('button', { name: 'Ava, quarter 1: Goal Shooter' })).toBeVisible();
+  });
+
+  it('closes an open edit form when switching match', async () => {
+    await addPlayer('Ruby');
+    const user = userEvent.setup();
+    render(<RosterPage />);
+    await createMatch(user); // vs Northside Comets
+    await createMatch(user); // a second one, now selected
+
+    await user.click(screen.getByRole('button', { name: 'Edit court and opponent' }));
+    const select = screen.getByLabelText('Match');
+    await user.selectOptions(select, within(select).getAllByRole('option')[0]!);
+
+    expect(await screen.findByRole('region', { name: 'Match' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
   });
 });

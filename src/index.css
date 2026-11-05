@@ -579,3 +579,18 @@ fieldset.squad-picker {
 .squad-picker .hint {
   margin: 4px 0 8px;
 }
+
+.match-bar .delete-match {
+  width: 100%;
+  margin-top: 8px;
+}
+
+button.danger-solid {
+  background: var(--danger);
+  color: var(--surface);
+}
+
+.sheet p {
+  margin: 0 0 4px;
+  color: var(--muted);
+}

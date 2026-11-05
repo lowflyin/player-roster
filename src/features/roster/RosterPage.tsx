@@ -58,7 +58,8 @@ export function RosterPage() {
               </select>
             </div>
           )}
-          <MatchRoster matchId={current.id} />
+          {/* Keyed so an open edit form or picker resets when switching match. */}
+          <MatchRoster key={current.id} matchId={current.id} />
         </>
       )}
     </section>

@@ -99,16 +99,25 @@ function rotate(playerIds: string[], quarters: QuarterLineup[]): QuarterLineup[]
 }
 
 /**
- * Creates a match with positions allocated. Earlier games are taken into
- * account so players move to positions they haven't played lately and
- * substitute duty rotates from week to week.
+ * Plans positions for a game from the games played before it, so players move
+ * to positions they haven't played lately and substitute duty rotates from
+ * week to week. A game counts as earlier if it's on an earlier date, or on
+ * the same date and was created first.
  */
+async function planWeek(playerIds: string[], date: string, createdAt: number) {
+  const earlier = (await db.matches.where('date').belowOrEqual(date).toArray()).filter(
+    (m) => m.date < date || m.createdAt < createdAt,
+  );
+  earlier.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  return planFromHistory(playerIds, earlier);
+}
+
+/** Creates a match with positions allocated, planned from the weeks before it. */
 export async function createMatch(
   details: Pick<Match, 'opponent' | 'court' | 'date' | 'quarterMinutes' | 'playerIds'>,
 ): Promise<Match> {
-  const earlier = await db.matches.where('date').belowOrEqual(details.date).toArray();
-  earlier.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
-  const plan = planFromHistory(details.playerIds, earlier);
+  const createdAt = Date.now();
+  const plan = await planWeek(details.playerIds, details.date, createdAt);
 
   const match: Match = {
     id: crypto.randomUUID(),
@@ -117,7 +126,7 @@ export async function createMatch(
     court: details.court?.trim(),
     playerIds: plan.order,
     quarters: generateRotation(plan.order, plan.homes),
-    createdAt: Date.now(),
+    createdAt,
   };
   await db.matches.add(match);
   return match;
@@ -150,12 +159,19 @@ export async function setMatchPosition(
   });
 }
 
-/** Rebuilds a fair rotation, keeping each player's main position. Replaces manual changes. */
+/**
+ * Re-plans a match's positions from the weeks before it, as if it had just
+ * been created. Replaces manual changes.
+ */
 export async function reallocateMatch(matchId: string): Promise<void> {
   await db.transaction('rw', db.matches, async () => {
     const match = await db.matches.get(matchId);
     if (!match) return;
-    await db.matches.update(matchId, { quarters: rotate(match.playerIds, match.quarters) });
+    const plan = await planWeek(match.playerIds, match.date, match.createdAt);
+    await db.matches.update(matchId, {
+      playerIds: plan.order,
+      quarters: generateRotation(plan.order, plan.homes),
+    });
   });
 }
 
