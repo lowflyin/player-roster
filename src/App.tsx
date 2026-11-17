@@ -4,15 +4,17 @@ import { isFirstRun } from './db/db';
 import { RosterPage } from './features/roster/RosterPage';
 import { TeamPage } from './features/team/TeamPage';
 import { MatchesPage } from './features/matches/MatchesPage';
+import { PlayersPage } from './features/players/PlayersPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import { ReloadPrompt } from './components/ReloadPrompt';
 
-type Tab = 'roster' | 'team' | 'matches' | 'settings';
+type Tab = 'roster' | 'team' | 'players' | 'matches' | 'settings';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'roster', label: 'Roster' },
   { id: 'team', label: 'Team' },
+  { id: 'players', label: 'Players' },
   { id: 'matches', label: 'Games' },
   { id: 'settings', label: 'Settings' },
 ];
@@ -47,6 +49,7 @@ export default function App() {
       <main className="app-main">
         {tab === 'roster' && <RosterPage />}
         {tab === 'team' && <TeamPage />}
+        {tab === 'players' && <PlayersPage />}
         {tab === 'matches' && <MatchesPage />}
         {tab === 'settings' && <SettingsPage />}
       </main>

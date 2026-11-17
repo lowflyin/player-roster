@@ -144,7 +144,7 @@ select {
   position: fixed;
   inset: auto 0 0 0;
   display: flex;
-  gap: 8px;
+  gap: 4px;
   padding: 8px 16px calc(env(safe-area-inset-bottom) + 8px);
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -152,6 +152,8 @@ select {
 
 .app-nav button {
   flex: 1;
+  min-width: 0;
+  padding: 0 4px;
   background: transparent;
   color: var(--muted);
 }
@@ -357,6 +359,129 @@ fieldset.squad-picker {
   height: 12px;
   border-radius: 4px;
   background: var(--zone);
+}
+
+/* Season totals on the Players tab */
+.stats-summary {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.stats-scroll {
+  overflow-x: auto;
+  margin: 0 -4px;
+}
+
+.stats {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  table-layout: fixed;
+}
+
+.stats th,
+.stats td {
+  padding: 0;
+  text-align: center;
+}
+
+.stats thead th {
+  font-size: 0.8125rem;
+  color: var(--zone, var(--muted));
+}
+
+.stats abbr {
+  text-decoration: none;
+}
+
+.stats .stats-player {
+  width: 30%;
+  text-align: left;
+  font-weight: 600;
+}
+
+.stats-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-games {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.stats td {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Zone colour, light to dark by quarters played; --heat-level is set per cell */
+.stats td.heat {
+  background: color-mix(in srgb, var(--zone) var(--heat-level, 100%), var(--surface));
+  color: var(--text);
+}
+
+/* Text colour that reads best on each shade, from measured contrast:
+   in light mode dark text, except white on full-strength attack and defence;
+   in dark mode light text, then the zone's dark text from 75% up. */
+.stats td.heat.full.zone-attack,
+.stats td.heat.full.zone-defence {
+  color: var(--zone-text);
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  .stats td.heat.strong {
+    color: var(--zone-text);
+  }
+}
+
+.heat-key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.heat-zero {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  margin-right: 4px;
+}
+
+.heat-ramps {
+  display: grid;
+  gap: 2px;
+  flex: 0 1 100px;
+}
+
+.heat-ramp {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--zone) 20%, var(--surface)),
+    var(--zone)
+  );
+}
+
+.stats td.none,
+.stats td.off {
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  font-weight: 400;
 }
 
 /* Player × quarter matrix */
